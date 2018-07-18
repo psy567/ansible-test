@@ -1,5 +1,5 @@
 ---
-- hosts: node_install
+- hosts: alls
   ignore_errors: yes
   gather_facts: false
   vars:
