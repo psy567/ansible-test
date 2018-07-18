@@ -1,0 +1,34 @@
+---
+- hosts: node_install
+  ignore_errors: yes
+  gather_facts: false
+  vars:
+    linux_dir: /opt
+  tasks:
+#  Windows 여부 확인
+    - name: Windows OS version check
+      win_shell: echo windows
+      register: windows_os
+    - debug: var=windows_os.changed
+#  리눅스 파이선 미설치 관련 심볼릭 처리
+    - name: linux symbolic link add /usr/bin/python_bsp
+      when: windows_os.changed == false
+      raw: "ln -s `find /usr/bin/ -type f -name 'python*' | sort -r | grep -v '-' -m 1` /usr/bin/python_bsp"
+#  OS 종류 확인
+    - name: Linux OS check
+      shell: "cat /etc/*-release | grep -v 'LSB' | sed -e 's/NAME=//g' | sed -e 's/\"//g' | sed -e 's/DISTRIB=//g' | grep -v '=' | grep -v '#' | grep -v '_' | sed -n '1p' | awk '{print $1}'"
+      when:  windows_os.changed == false
+      register: os_check
+    - debug: var=os_check.stdout
+#  OS 버전 확인
+    - name: Linux OS version check
+      shell: "cat /etc/*-release | sed -n '1,2p' | sed 's/-SP/./g' | sed 's/VERSION=\"2.0//g' | grep -v 'LSB' | grep -v 'x86_64' | sed 's/[^.0-9]//g' | sed '/^$/d' | sort | uniq"
+      when:  windows_os.changed == false
+      register: os_version_check
+    - debug: var=os_version_check.stdout
+#  OS 비트 확인
+    - name: Linux OS arch check
+      shell: "getconf LONG_BIT"
+      when: os_check.stdout == 'CentOS' or os_check.stdout == 'Amazon' or os_check.stdout == 'Red' or os_check.stdout == 'ubuntu' or os_check.stdout == 'SLES' or os_check.stdout == 'Debian'
+      register: os_arch_check
+    - debug: var=os_arch_check.stdout
