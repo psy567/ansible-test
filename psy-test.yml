@@ -1,5 +1,5 @@
 ---
-- hosts: alls
+- hosts: all
   ignore_errors: yes
   gather_facts: false
   vars:
